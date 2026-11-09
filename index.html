@@ -1,0 +1,159 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1, user-scalable=no">
+<meta name="theme-color" content="#0a0d18">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="description" content="The Lantern & the Sky Whale — a small cinematic story about very large things.">
+<title>The Lantern &amp; the Sky Whale</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<div id="app">
+  <canvas id="game" aria-label="The Lantern and the Sky Whale — game world"></canvas>
+
+  <!-- persistent film texture / vignette -->
+  <div class="lens" aria-hidden="true"></div>
+
+  <!-- HUD -->
+  <div id="hud" class="hud is-hidden">
+    <div class="hud-left">
+      <div id="chapterChip" class="chapter-chip"><span id="chapterNum">I</span><span class="chip-rule"></span><span id="chapterName">The Long Field</span></div>
+      <div id="objective" class="objective"><span class="obj-star">✦</span><span id="objectiveText"></span></div>
+    </div>
+    <div class="hud-right">
+      <div id="wonderHud" class="wonder-hud" title="wonder gathered"><span class="wonder-star">✧</span><span id="wonderCount">0</span><span class="wonder-total">/ <span id="wonderTotal">9</span></span></div>
+      <button id="pauseBtn" class="icon-btn" aria-label="Menu">
+        <span></span><span></span>
+      </button>
+    </div>
+  </div>
+
+  <!-- interaction prompt -->
+  <button id="interactBtn" class="interact-btn" aria-label="Interact">
+    <span class="interact-glow"></span>
+    <span class="interact-key">E</span>
+    <span id="interactLabel" class="interact-label">Look</span>
+  </button>
+
+  <!-- touch joystick -->
+  <div id="stickZone" class="stick-zone" aria-hidden="true">
+    <div id="stickBase" class="stick-base">
+      <div id="stickNub" class="stick-nub"><span class="nub-core"></span></div>
+      <span class="stick-hint left">‹</span>
+      <span class="stick-hint right">›</span>
+    </div>
+  </div>
+
+  <!-- walk hint -->
+  <div id="walkHint" class="walk-hint">
+    <div class="walk-arrows"><span>‹</span><span>›</span></div>
+    <div class="walk-copy">drag to walk</div>
+  </div>
+
+  <!-- cinematic letterbox -->
+  <div id="barTop" class="cine-bar top" aria-hidden="true"></div>
+  <div id="barBottom" class="cine-bar bottom" aria-hidden="true"></div>
+
+  <!-- dialogue -->
+  <div id="dialogue" class="dialogue" aria-live="polite">
+    <div class="dialogue-inner">
+      <div id="speaker" class="speaker"></div>
+      <div id="line" class="line"></div>
+      <div id="choices" class="choices"></div>
+      <div id="advance" class="advance"><span class="advance-dot"></span><span>tap to continue</span></div>
+    </div>
+  </div>
+
+  <!-- location reveal -->
+  <div id="location" class="location">
+    <div class="loc-rule"></div>
+    <div id="locationName" class="loc-name">The Long Field</div>
+    <div id="locationSub" class="loc-sub">the edge of the map</div>
+  </div>
+
+  <!-- chapter title card -->
+  <div id="chapterCard" class="chapter-card">
+    <div class="cc-inner">
+      <div id="ccKicker" class="cc-kicker">a story in three parts</div>
+      <div id="ccNum" class="cc-num">I</div>
+      <h1 id="ccTitle" class="cc-title">The Long Field</h1>
+      <div id="ccSub" class="cc-sub">autumn — the year the sky came down</div>
+      <div class="cc-line"></div>
+    </div>
+  </div>
+
+  <!-- title screen -->
+  <div id="titleScreen" class="title-screen">
+    <div class="ts-shade" aria-hidden="true"></div>
+    <div class="ts-inner">
+      <div class="ts-kicker">a small story about very large things</div>
+      <h1 class="ts-title">
+        <span class="ts-line"><em>The</em> Lantern</span>
+        <span class="ts-line"><em class="ts-amp">&amp;</em> the Sky Whale</span>
+      </h1>
+      <div class="ts-rule"><i></i><b>✦</b><i></i></div>
+      <p class="ts-blurb">One autumn evening, a girl followed a fallen star<br class="wide-only"> past the last fence in the world.</p>
+      <div class="ts-actions">
+        <button id="beginBtn" class="btn btn-primary">Begin the journey</button>
+        <button id="continueBtn" class="btn btn-ghost is-hidden">Continue</button>
+      </div>
+      <div class="ts-foot"><span>headphones recommended</span><span class="ts-dot">·</span><span>drag to walk</span><span class="ts-dot">·</span><span>tap ✦ to look</span></div>
+    </div>
+    <div class="ts-credit">made of moonlight, tall grass &amp; one very patient firefly</div>
+  </div>
+
+  <!-- pause / menu -->
+  <div id="pauseScreen" class="pause-screen">
+    <div class="pause-card">
+      <div class="pause-kicker">a moment to breathe</div>
+      <h2 class="pause-title">Paused</h2>
+      <div class="pause-actions">
+        <button id="resumeBtn" class="btn btn-primary">Keep walking</button>
+        <button id="soundBtn" class="btn btn-ghost">Sound: on</button>
+        <button id="restartBtn" class="btn btn-ghost">Restart chapter</button>
+        <button id="quitBtn" class="btn btn-ghost">Back to title</button>
+      </div>
+      <div class="pause-controls">
+        <div><b>Walk</b><span>drag anywhere · arrows / A D</span></div>
+        <div><b>Look &amp; listen</b><span>tap the ✦ button · E / space</span></div>
+        <div><b>Continue</b><span>tap the words · tap anywhere</span></div>
+      </div>
+      <div class="pause-note">your place is kept on this device</div>
+    </div>
+  </div>
+
+  <!-- ending -->
+  <div id="endScreen" class="end-screen">
+    <div class="end-shade"></div>
+    <div class="end-inner">
+      <div id="endKicker" class="end-kicker">and so, the sky got a little fuller</div>
+      <h1 class="end-title">The End</h1>
+      <div class="end-rule"></div>
+      <p id="endCopy" class="end-copy"></p>
+      <div class="end-stats">
+        <div><span id="endWonders">0</span><small>small wonders gathered</small></div>
+        <div><span id="endTime">0</span><small>minutes of wonder</small></div>
+      </div>
+      <div class="end-actions">
+        <button id="againBtn" class="btn btn-primary">Walk the road again</button>
+        <button id="endTitleBtn" class="btn btn-ghost">Title screen</button>
+      </div>
+      <div class="end-credit">for everyone who ever lay in the grass and waited for the sky to notice</div>
+    </div>
+  </div>
+
+  <div id="fade" class="fade"></div>
+
+  <div id="rotateHint" class="rotate-hint">best in landscape · but fine like this</div>
+  <div id="toast" class="toast"></div>
+</div>
+
+<script type="module" src="src/main.js"></script>
+</body>
+</html>
